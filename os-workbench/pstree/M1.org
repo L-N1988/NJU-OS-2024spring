@@ -1,26 +1,58 @@
 #+title: M1: pstree
 尽可能快地完成project，多看手册，辅助看讲义和视频，不问chatGPT
 
-+ [x] 解析命令行参数
+* [x] 解析命令行参数
   + getopt_long(): https://stackoverflow.com/a/7489237/18736354
-+ [x] linux /proc文件夹
+* [x] linux /proc文件夹
   + /proc文件夹: https://docs.kernel.org/filesystems/proc.html
     | stat   | Process status                        |
     | status | Process status in human readable form |
-  + 提取进程ppid
-    1. fget 读取stat的单行第四个信息: https://stackoverflow.com/a/40891439/18736354
-       辅助strtok以空格分割tokens。
-       读取的内容少，
-       但是空格分割得到的ppid token的位置不固定，tcomm(filename of the executable) field可能存在空格，
-       导致分割得到的ppid token 位置发生偏移。
-    2. sscanf匹配status文件的PPid: https://stackoverflow.com/a/73693519/18736354
-  + 遍历/proc文件夹下所有数字文件夹
+** 提取进程ppid
+1. fget 读取stat的单行第四个信息: https://stackoverflow.com/a/40891439/18736354
+   辅助strtok以空格分割tokens。
+   读取的内容少，
+   但是空格分割得到的ppid token的位置不固定，tcomm(filename of the executable) field可能存在空格，
+   导致分割得到的ppid token 位置发生偏移。
+2. sscanf匹配status文件的PPid: https://stackoverflow.com/a/73693519/18736354
+   读取的status文件比stat文件内容更加长
+3. fscanf直接从stat文件读取进程信息
+   #+begin_src C
+char filename[300];
+int pid, ppid;
+char exe[256];
+snprintf(filename, sizeof(filename), "/proc/%s/stat", dir->d_name);
+FILE *fp = fopen(filename, "r");
+if (fp) {
+// 用fscanf函数读取
+    fscanf(fp, "%d %s %*c %d", &pid, exe, &ppid);
+} else {
+    return 1;
+}
+   #+end_src
+** 遍历/proc文件夹下所有数字文件夹
+#+begin_src C
+DIR *pDir = opendir("/proc");
+while ((pDirent = readdir(pDir)) != NULL) {
+    // folder is named by number (pid)
+    if (sscanf(pDirent->d_name, "%d", &pid) > 0) { // folder name is number
+        // printf("PID: %d\n", pid);
+        assert(nproc < MAXPID);
+        if (process(procs + nproc, pid) != -1) {
+            nproc += 1;
+        } else {
+            return -1;
+        }
+    }
+}
+#+end_src
 
-+ [x] 多孩树结构打印输出
-  不知道如何处理不同节点的连线关系，需要参考unix tree的实现[[file:~/tree.c][unix tree.c]]
 
-  当前进程继承父进程的prefix，增加segment字符. 如果父进程是同一级进程的最后一个进程，那么segment = "    "，否则segment = "│   "; 将segment 追加在prefix后构成新的prefix.
-  #+begin_src C
+* [x] 多孩树结构打印输出
+不知道如何处理不同节点的连线关系，需要参考unix tree的实现[[file:~/tree.c][unix tree.c]]
+
+当前进程继承父进程的prefix，增加segment字符. 如果父进程是同一级进程的最后一个进程，那么segment = "    "，否则segment = "│   "; 将segment 追加在prefix后构成新的prefix.
+
+#+begin_src C
 if (i == nchild - 1) {
     pointer = "└── ";
     segment = "    ";
@@ -32,9 +64,9 @@ printf("%s%s%s\n", prefix, pointer, childs[i].name);
 
 char *next_prefix = (char *)malloc(strlen(prefix) + strlen(segment) + 1);
 sprintf(next_prefix, "%s%s", prefix, segment);
-  #+end_src
+#+end_src
 
-  #+begin_example
+#+begin_example
 ├── tmux:[798]
 │   ├── sh[980] // tmux不是同级进程的最后一个进程，因此本进程的prefix = "|   ",
 │   │   └── sleep[39511]
@@ -50,4 +82,4 @@ sprintf(next_prefix, "%s%s", prefix, segment);
 │   │           └── python3[12668]
 │   └── zsh[14104]
 ...     └── pstree-64[39725] // zsh 是同级进程的最后一个进程，因此本进程的prefix = "|   "(继承上一级的prefix) + "    "
-  #+end_example
+#+end_example
