@@ -1,0 +1,26 @@
+#+title: QEMU
+* debug qemu
+** gdb connect to qemu
+#+begin_src bash
+qemu-system-i386 -s -S -drive format=raw,file=bootable.img
+#+end_src
+-s: Shorthand for -gdb tcp::1234, which sets up a GDB server on TCP port 1234.
+-S: Freezes the CPU at startup, waiting for a debugger to connect.
+
+run gdb, inside gdb connect to qemu session:
+#+begin_src bash
+target remote localhost:1234
+#+end_src
+
+** serial output debug infomation
+You can modify your bootloader and kernel to output debugging information over the serial port, which QEMU can capture and display. You can configure QEMU to redirect serial port output to a file or a terminal window:
+#+begin_src bash
+qemu-system-i386 -drive format=raw,file=bootable.img -serial file:debug_output.txt
+#+end_src
+
+Or:
+#+begin_src bash
+qemu-system-i386 -drive format=raw,file=bootable.img -serial stdio
+#+end_src
+
++ [[https://qemu-project.gitlab.io/qemu/system/gdb.html][qemu 手册: gdb usage]]

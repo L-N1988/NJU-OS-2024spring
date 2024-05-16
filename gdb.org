@@ -1,0 +1,4 @@
+#+title: GDB
+* python gdb api
++ [[https://interrupt.memfault.com/blog/automate-debugging-with-gdb-python-api][Automate Debugging with GDB Python API]]
++ [[file:lecture-scripts/debug-bootloader/debug.py][debug.py for gdb]]

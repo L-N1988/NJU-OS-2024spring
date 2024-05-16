@@ -1,0 +1,21 @@
+#+title: 一路走来
+
+* bugs or mysteries
++ [ ] pstree ld not compatible with old version
++ [x] [[file:lecture-scripts/debug-bootloader/GCC-version-error.org][高版本GCC的错误警告⚠️]]
++ [x] [[file:lecture-scripts/debug-bootloader/boot-file-not-found.org][debug-bootloader error: boot.o not found and not in executable format]]
++ [x] [[file:lecture-scripts/debug-bootloader/qemu-stuck.org][vm startup stopped at 'booting from hard disk']]
++ [ ] [[file:linker-RWX-warning.org][GNU Linker: ELF has a LOAD segment with RWX permissions.]]
+
+* good practice
+libc:
++ [[https://musl.libc.org/][musl libc]]
++ old version: [[https://git.musl-libc.org/cgit/musl/tree/src/?h=v0.5.0][musl libc v0.5.0]]
+
+* tools
++ [[file:qemu.org][qemu]]
++ gdb
+
+* about labs
++ [[file:os-workbench/pstree/M1.org][M1: pstree]]
++ [[file:L0.org][L0: hello, bare-metal!]]

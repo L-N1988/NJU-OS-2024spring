@@ -1,0 +1,87 @@
+#+title: Linker Rwx Warning
+
+* warning
+#+begin_quote
+x86_64-linux-gnu-ld: warning: /home/liuning/nju-OS/lecture-scripts/debug-bootloader/build/hello-x86-qemu.elf has a LOAD segment with RWX permissions
+#+end_quote
+
+  #+begin_src bash
+$ readelf -l build/hello-x86-qemu.elf
+
+Elf file type is EXEC (Executable file)
+Entry point 0x10010f
+There are 4 program headers, starting at offset 52
+
+Program Headers:
+  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+  LOAD           0x0000b4 0x001000b4 0x001000b4 0x03290 0x114074 RWE 0x20
+  ...
+  #+end_src
+
+The memory storing data must be writable (W), and code memory must be executable (X). Both must be readable (R). Thus, a segment that stores both data and code sections is RWX, which leaves your program vulnerable to attacks like buffer overflows.
+
+I noticed that if you don't enforce attributes on a segment, it uses the ones set by the sections you assigned to it.
+
+What worked was splitting the memory into code and data segments in the linker script (lscript.ld). Instead of placing all sections in the same segment (defined by the MEMORY command) like this:
+
+#+begin_src asm
+/* ps7_ddr_0 is RWX because we omit the attributes and we
+put both .data and .text there */
+MEMORY
+{
+ps7_ddr_0 : ORIGIN = 0x100000, LENGTH = 0x3FF00000
+}
+
+SECTIONS
+{
+.text : {
+KEEP (*(.vectors))
+,*(.boot)
+,*(.text)
+,*(.text.*)
+} > ps7_ddr_0
+
+.data : {
+__data_start = .;
+,*(.data)
+,*(.data.*)
+__data_end = .;
+} > ps7_ddr_0
+
+_end = .;
+}
+#+end_src
+
+We separate the memory into two different segments, one writable for data sections, and another executable for code sections:
+
+#+begin_src asm
+MEMORY
+{
+ps7_ddr_0_code (rx) : ORIGIN = 0x00100000, LENGTH = 0x1FF80000
+ps7_ddr_0_data (rw) : ORIGIN = 0x20080000, LENGTH = 0x1FF80000
+}
+#+end_src
+
+Then, each SECTION must go into the segment according to its needs:
+#+begin_src asm
+SECTIONS
+{
+.text : {
+KEEP (*(.vectors))
+,*(.boot)
+,*(.text)
+,*(.text.*)
+} > ps7_ddr_0_code
+
+.data : {
+__data_start = .;
+,*(.data)
+,*(.data.*)
+__data_end = .;
+} > ps7_ddr_0_data
+
+_end = .;
+}
+#+end_src
+* Refs
++ [[https://stackoverflow.com/questions/73429929/gnu-linker-elf-has-a-load-segment-with-rwx-permissions-embedded-arm-project][GNU Linker: ELF has a LOAD segment with RWX permissions.]]

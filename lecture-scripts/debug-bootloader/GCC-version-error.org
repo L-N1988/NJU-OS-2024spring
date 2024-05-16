@@ -1,0 +1,11 @@
+#+title: Gcc Version Error
+
+* GCC 12版本编译abstract machine 报错
++ issue: [[https://github.com/NJU-ProjectN/abstract-machine/issues/16][GCC高版本下出错 #16]]
++ solution1: [[https://github.com/NJU-ProjectN/os-workbench-2022/issues/10][issue#10]]
+  #+begin_quote
+  --param=min-pagesize= should be set to 0 for avr as zero is a valid address.
+  #+end_quote
+  因此在Makefile中CFLAGS变量增加选项--param=min-pagesize=0
+  + [[https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105523][Wrong warning array subscript [0] is outside array bounds]]
++ solution: [[https://github.com/NJU-ProjectN/os-workbench-2022/issues/3#issue-1268505032][boot/main.c: Miscompilation on GCC 12.1.0]]

@@ -1,0 +1,9 @@
+#+title: Qemu Stuck
+* vm startup stopped at 'booting from hard disk'
++ https://unix.stackexchange.com/a/671968/548654
+* 尝试解决
+重新下载全新的代码仓库，更改$AM_HOME指向全新的代码仓库，编译运行[[file:qemu-stuck.org][debug-bootloader]]一切正常，
+能够正常打印"Hello world."，同时出现VNC server的5900端口.
+
+将abstract machine 中所有编译得到的二进制文件make clean后重新编译得到正常运行的bootloader.
+看来是makefile没有及时更新错误编译的二进制文件，奇怪!!!

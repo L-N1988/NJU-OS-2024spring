@@ -1,0 +1,37 @@
+#+title: Boot File Not Found and Executable
+* 尝试解决
+$AM_HOME/Makefile未将bootblock.o拷贝为boot.o，上课视频中在执行
+  #+begin_src shell
+python3 genboot.py bootblock.o
+  #+end_src
+  之前存在一条
+  #+begin_src shell
+cp bootblock.o boot.o
+  #+end_src
+  【03-硬件视角的操作系统 (计算机系统的状态机模型；固件、调试固件) [南京大学2024操作系统]】 【精准空降到 1:30:13】 https://www.bilibili.com/video/BV1xS421w7L2/?share_source=copy_web&vd_source=cfa2151fc0dece30bef9a544ab53eefd&t=5413
+
+* boot.o not in executable format: file format not recognized
+gdb没法调试.o文件?
+
+[[file:~/nju-OS/os-workbench/abstract-machine/am/src/x86/qemu/boot/Makefile][boot文件夹的Makefile]]缺少了-ggdb选项和cp bootblock.o boot.o命令，因此得到的boot.o无法用gdb调试。
+
+* Solution
+Makefile修改如下即可正常make debug
+#+begin_src shell
+@$(CROSS_COMPILE)gcc -ggdb -static -m32 -fno-pic -Os -nostdlib -Ttext 0x7c00 -I$(AM_HOME)/am/src -o bootblock.o $(SRCS)
+@cp bootblock.o boot.o
+#+end_src
+
+#+begin_quote
+-ggdb
+        Produce debugging information for use by GDB.  This means to  use  the  most  expressive  format  available
+        (DWARF,  stabs, or the native format if neither of those are supported), including GDB extensions if at all
+        possible.
+#+end_quote
+
+* gdb connect to qemu (with -s option)
++ [[https://qemu-project.gitlab.io/qemu/system/gdb.html][qemu 手册: gdb usage]]
+
+  #+begin_quote
+  In order to use gdb, launch QEMU with the -s and -S options. The -s option will make QEMU listen for an incoming connection from gdb on TCP port 1234, and -S will make QEMU not start the guest until you tell it to from gdb.
+  #+end_quote

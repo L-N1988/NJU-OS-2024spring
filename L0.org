@@ -1,0 +1,36 @@
+#+title: L0
+
+* klib implementation
+** var args
+#+begin_src C
+void exampleFunction(int numArgs, ...) {
+    va_list args;
+    va_start(args, numArgs);
+
+    for (int i = 0; i < numArgs; i++) {
+        int value = va_arg(args, int);  // Assuming all arguments are of type int
+        printf("Argument %d: %d\n", i + 1, value);
+    }
+
+    va_end(args);
+}
+
+#+end_src
+1. *va_list*: A type to hold information about variable arguments.
+2. *va_start*: A macro to initialize args for subsequent use with va_arg and va_end. The second parameter is the last known fixed argument, used to get the start of the variable argument list.
+3. *va_arg*: A macro that returns the next argument in the parameter list with a specified type. You need to know the expected type of the next argument to correctly retrieve it.
+4. *va_end*: A macro to clean up; it ends the traversal of the variable arguments.
+
+** printf implementation
++ [[https://hackernoon.com/what-is-va_list-in-c-exploring-the-secrets-of-ft_printf][What is Va_list in C? Exploring the Secrets of Ft_printf]]
+
+* bare metal run ELF on QEMU
++ local code: [[file:lecture-scripts/debug-bootloader/][debug-bootloader]]
+Simply use -kernel option: [[https://stackoverflow.com/a/49916215/18736354][ref]]
+
+  #+begin_src bash
+qemu-system-i386 -kernel ./build/hello.elf
+  #+end_src
+
+- meet elf error [[https://forum.osdev.org/viewtopic.php?f=1&t=33638][Error loading uncompressed kernel without PVH ELF Note]]
+- [[https://stackoverflow.com/a/50981397/18736354][How to make bare metal ARM programs and run them on QEMU?]]
